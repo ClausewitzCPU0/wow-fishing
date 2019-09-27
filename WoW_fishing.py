@@ -1,6 +1,25 @@
 """
+notes :
+1.支持各个水域钓鱼，注意确保屏幕下方三分之一矩形区域全为水域，没有怪物和其他钓鱼者干扰。
+2.调节 RMS（触发响度），确保其值小于水花声但大于其他背景声音。（关闭背景音可获得更好效果）
+3.将特效调至最低可获得最佳效果。(95% 以上成功率)
+4.请勿于官方服务器，仅用于在某些外服、单机客户端测试各个地点各时段鱼群的构成和比例。
+5.程序对截图进行颜色分析，确定鱼漂坐标，然后以水花声为收杆触发条件。由于是个人使用，不再做过多说明。
+
+Version 1.2 : TODO
+1.代码重构。
+2.数据统计。
+
+Version 1.1 :
+1.调节水域截屏区域，大幅提升成功率。
+2.解决水下诱鱼器过期时死锁的BUG。
+3.注释部分DEBUG代码，减少响应时间。
+
+Version 1.0 :
+修改原作者代码，使其可用于中文客户端。
 SOURCE: wdavid214
-MODIFIED BY: PolestarX
+MODIFIED BY: ClausewitzCPU0
+
 """
 from win32gui import GetWindowText, GetForegroundWindow, GetWindowRect
 from PIL import ImageGrab, Image
@@ -25,6 +44,7 @@ stream = p.open(format=pyaudio.paInt16,
                 input=True,
                 frames_per_buffer=chunk)
 
+RMS = 3000
 # buf=40 # avoid boundary false trigger; not too far though
 buf = 0  # alrdy compensated for boundary in initial rect adjustments
 
@@ -190,7 +210,7 @@ while True:
                             else:
                                 n = n + 1
 
-                            if rms > 3000:
+                            if rms > RMS:
                                 if time.time() - t1 > 1.0:
                                     print('we heard the fish catch sound,rms={}'.format(rms))
                                     break  # out of while 1
