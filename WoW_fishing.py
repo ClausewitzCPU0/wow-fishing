@@ -43,21 +43,20 @@ while True:
         ############# ONE TIME LOGIC AT VERY BEGINNING ####
 
         rect = GetWindowRect(GetForegroundWindow())
-        # print(rect)
-        # time.sleep(1)
         rect = np.array(rect)
+        #rect:[33 98 1975 1234] 分别表示该窗口的/左侧/顶部/右侧/底部坐标
 
         rect_back = np.copy(rect)
 
         # print(type(rect))
 
-        rect[0] += 600
-        rect[2] -= 600
+        rect[0] += 200
+        rect[2] -= 200
 
-        rect[3] -= 110
+        # rect[3] -= 10
 
         # rect[1] += 25  # cut off title bar
-        rect[1] += 25  # cut off title bar
+        rect[1] += 750  # cut off title bar
 
         fish_area = (rect[0], rect[1], rect[2], rect[3])
 
@@ -97,7 +96,7 @@ while True:
                 print('getting new img')
 
                 img = ImageGrab.grab(fish_area)
-                img.save('img.png')  # Saving the image
+                # img.save('img.png')  # Saving the image
 
                 # 对其他通道置零，只显示单个通道(b, g, r)
                 # 例如只显示红色通道：cur_img[:, :, 0] = 0, cur_img[:, :, 1] = 0
@@ -122,9 +121,9 @@ while True:
                     # 输出满足条件元素的坐标
                     b = np.where(subtraction_green > 200)
                     # print(type(b))
-                    # print(b)
+                    print('b: {}\n'.format(b))
                     # print(b[0])
-                    if b[0].size > 0:
+                    if b[0].size > 10:
                         print(b[0].size)
                         print(b[0])
                         print(b[1])
@@ -156,8 +155,8 @@ while True:
 
                         # note: x and y were backwards coming out of the np.where function.
 
-                        ix = jy + rect_back[0] + 600  # adjust relative to absolute screen coordinate
-                        iy = jx + rect_back[1] + 25
+                        ix = jy + rect_back[0] + 200  # adjust relative to absolute screen coordinate
+                        iy = jx + rect_back[1] + 750
 
                         print("IMAGE TRIGGERED!!!!")
                         print(ix, iy)
@@ -191,7 +190,7 @@ while True:
                             else:
                                 n = n + 1
 
-                            if rms > 2500:
+                            if rms > 3000:
                                 if time.time() - t1 > 1.0:
                                     print('we heard the fish catch sound,rms={}'.format(rms))
                                     break  # out of while 1
@@ -214,3 +213,5 @@ while True:
 
                         # sys.exit(1)
                         continue1 = 1
+                    else:
+                        break
