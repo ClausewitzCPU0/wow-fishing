@@ -14,6 +14,7 @@ Version 1.1 :
 1.调节水域截屏区域，大幅提升成功率。
 2.解决水下诱鱼器过期时死锁的BUG。
 3.注释部分DEBUG代码，减少响应时间。
+4.增加测试代码
 
 Version 1.0 :
 修改原作者代码，使其可用于中文客户端。
@@ -42,9 +43,10 @@ stream = p.open(format=pyaudio.paInt16,
                 channels=2,  # need this to work (like other record script)
                 rate=44100,
                 input=True,
-                frames_per_buffer=chunk)
+                frames_per_buffer=chunk,)
+                # input_device_index=0)
 
-RMS = 3000
+RMS = 3500
 # buf=40 # avoid boundary false trigger; not too far though
 buf = 0  # alrdy compensated for boundary in initial rect adjustments
 
@@ -73,7 +75,7 @@ while True:
         rect[0] += 200
         rect[2] -= 200
 
-        # rect[3] -= 10
+        rect[3] -= 10
 
         # rect[1] += 25  # cut off title bar
         rect[1] += 750  # cut off title bar
