@@ -29,7 +29,7 @@ import numpy as np
 import time
 import sys
 import pyautogui
-
+import cv2
 import audioop
 import pyaudio
 
@@ -131,8 +131,8 @@ while True:
                 # print('red_content:{}'.format(red_content))
 
                 if cnt > 0:
-                    # subtraction_green = red_content_back - green_content
-                    subtraction_green = green_content - red_content_back
+                    subtraction_green = red_content_back - green_content
+                    # subtraction_green = green_content - red_content_back
                     # imageio.imwrite('out_subtraction_green%d.png' % (cnt), subtraction_green)
                     # imageio.imwrite('out_subtraction_red%d.png' % (cnt), red_content_back - green_content)
 
@@ -192,48 +192,45 @@ while True:
 
                         print('\nstarting audio check')
 
-                        t1 = time.time()
+                        fish_area = (0, rect[3] / 2, rect[2], rect[3])
 
-                        # while rms==0:
-                        # audioop.rms(fragment, width)
-                        # 返回片段的均方根，即sqrt(sum(S_i^2)/n)。
-                        # 这是衡量音频信号功率的指标。
-                        rms = 0
-                        n = 0
-                        # while rms<90:
-                        # while (rms<250):
-                        # while (rms<250) and (time.time()-t1 < 1.0): # add check on time to filter out double-triggers from audio stream.
-                        while 1:
-                            data = stream.read(chunk)
-                            rms = audioop.rms(data, 2)  # width=2 for format=paInt16
-                            if n == 10:  # only print out every 10th one
-                                print('rms value = %d' % rms)
-                                n = 0
-                            else:
-                                n = n + 1
+                        img = ImageGrab.grab(fish_area)
+                        img_np = np.array(img)
 
-                            if rms > RMS:
-                                if time.time() - t1 > 1.0:
-                                    print('we heard the fish catch sound,rms={}'.format(rms))
-                                    break  # out of while 1
+                        frame = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
+                        frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-                            if (time.time() - t1 > 30.0):  # it never caught; break out of while
-                                print('FISH CATCH NEVER SOUNDED or something else went wrong.')
-                                break
+                        h_min = np.array((0, 0, 253), np.uint8)
+                        h_max = np.array((255, 0, 255), np.uint8)
 
-                            time.sleep(.1)
+                        mask = cv2.inRange(frame_hsv, h_min, h_max)
 
-                        # print (rms)
-                        print('AUDIO TRIGGERED!!!! rms value = %d' % rms)
+                        moments = cv2.moments(mask, 1)
+                        dM01 = moments['m01']
+                        dM10 = moments['m10']
+                        dArea = moments['m00']
 
-                        time.sleep(.2)  # dont fish too early (will want to randomize all these)
-                        print('ATTEMPTING TO FISH')
-                        # pyautogui.keyDown("shiftleft")
-                        pyautogui.mouseDown(button='right')
-                        pyautogui.mouseUp(button='right')
-                        # pyautogui.keyUp("shiftleft")
+                        b_x = 0
+                        b_y = 0
+                        lastx = 0
+                        lasty = 0
 
-                        # sys.exit(1)
-                        continue1 = 1
+                        if dArea > 0:
+                            b_x = int(dM10 / dArea)
+                            b_y = int(dM01 / dArea)
+                        if lastx > 0 and lasty > 0:
+                            if lastx != b_x and lasty != b_y:
+                                is_block = False
+                                if b_x < 1: b_x = lastx
+                                if b_y < 1: b_y = lasty
+                                pyautogui.moveTo(b_x, b_y + fish_area[1], 0.3)
+                                # pyautogui.keyDown('shiftleft')
+                                pyautogui.mouseDown(button='right')
+                                pyautogui.mouseUp(button='right')
+                                # pyautogui.keyUp('shiftleft')
+                                print("Catch !")
+                                time.sleep(5)
+                        lastx = b_x
+                        lasty = b_y
                     else:
                         break
